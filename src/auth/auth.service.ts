@@ -27,7 +27,7 @@ export class AuthService{
             return user
         } catch(error) {
             if (error instanceof PrismaClientKnownRequestError) {
-                if (error.code === 'P2002') throw new ForbiddenException('e-mail already used')
+                if (error.code === 'P2002') throw new ForbiddenException('Email already used')
             }
             throw error
         }
