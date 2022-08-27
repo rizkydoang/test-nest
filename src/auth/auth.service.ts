@@ -27,15 +27,30 @@ export class AuthService{
             return user
         } catch(error) {
             if (error instanceof PrismaClientKnownRequestError) {
-                if (error.code === 'P2002') {
-                    throw new ForbiddenException('Credential taken')
-                }
+                if (error.code === 'P2002') throw new ForbiddenException('e-mail already used')
             }
             throw error
         }
     }
 
-    signin() {
-        return { msg: 'Sign In Service' }
+    async signin(dto: AuthDto) {
+        // find the user by email
+        const user = await this.prisma.user.findUnique({
+            where: {
+                email: dto.email
+            }
+        })
+        if (!user) throw new ForbiddenException("Email or Password is incorrect")
+
+        // compare password
+        const isPassMatch = await argon.verify(
+            user.hash,
+            dto.password
+        )
+        if (!isPassMatch) throw new ForbiddenException("Email or Password is incorrect")
+
+        // send back the data user
+        delete user.hash
+        return user
     }
 }
